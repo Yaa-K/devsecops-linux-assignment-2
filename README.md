@@ -1,7 +1,5 @@
 # 🐧 DevSecOps Linux Assignment 
-
-**Author:** Yaa Kesewaa Yeboah
-**GitHub:** [Yaa-K](https://github.com/Yaa-K)
+**10 Linux Security Incidents, Reproduced and Fixed**
 ---
 
 ## 📌 Overview
