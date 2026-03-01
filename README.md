@@ -1,10 +1,7 @@
-# 🐧 ParoCyber Linux Assignment
+# 🐧 DevSecOps Linux Assignment 
 
 **Author:** Yaa Kesewaa Yeboah
 **GitHub:** [Yaa-K](https://github.com/Yaa-K)
-**Facilitator:** Samuel Nartey Otuafo
-**Organisation:** ParoCyber LLC
-
 ---
 
 ## 📌 Overview
