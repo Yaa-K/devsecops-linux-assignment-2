@@ -24,11 +24,11 @@ parocyber-linux-assignment/
 │   ├── run_all_scenarios.sh   ← Master script for all scenarios
 │   └── incident_report.txt   ← Heredoc-generated report (Scenario 10)
 └── screenshots/
-    ├── Scenario 1 task A1
-    ├── Scenario 1 task A2
-    ├── Scenario 1 Task B
-    ├── Scenario 1 Task C
-    ├── Scenario 2
+    ├── scenario_01_task_a1.png
+    ├── scenario_01_task_a2.png
+    ├── scenario_01_task_b.png
+    ├── scenario_01_task_c.png
+    ├── scenario_02.png
     ├── screenshot_11_backup_with_metadata.png
     ├── screenshot_12_applog_chattr_a.png
     ├── screenshot_13_append_ok_overwrite_blocked_log.png
@@ -85,24 +85,20 @@ Created three users and a shared group to simulate a real team environment.
 sudo useradd -m intern_a
 sudo useradd -m dev_user
 sudo useradd -m ops_user
-echo "intern_a:intern123" | sudo chpasswd
-echo "dev_user:dev123"    | sudo chpasswd
-echo "ops_user:ops123"    | sudo chpasswd
 sudo groupadd project_team
 sudo usermod -aG project_team intern_a
 sudo usermod -aG project_team dev_user
 sudo usermod -aG project_team ops_user
 getent group project_team
-id intern_a
 ```
 
 **Evidence:**
 
-![Scenario 1 Task A1](screenshots/Scenario%201%20task%20A1)
+![Scenario 1 Task A1](screenshots/scenario_01_task_a1.png)
 *Users created successfully*
 
-![Scenario 1 Task A2](screenshots/Scenario%201%20task%20A2)
-*getent and id output confirming all three users are members of project_team*
+![Scenario 1 Task A2](screenshots/scenario_01_task_a2.png)
+*getent confirming all three users are members of project_team*
 
 #### Part B – Reproducing the Incident
 
@@ -120,7 +116,7 @@ ls /srv/project_shared/
 
 **Evidence:**
 
-![Scenario 1 Task B](screenshots/Scenario%201%20Task%20B)
+![Scenario 1 Task B](screenshots/scenario_01_task_b.png)
 *FILE DELETED! message and empty directory — incident successfully reproduced*
 
 **Observation:** With `chmod 770`, write permission on the directory grants any group member the ability to delete any file inside it, regardless of who created it. This is a fundamental Linux behaviour that many people overlook.
@@ -133,12 +129,13 @@ Applied `chattr +i` (immutable) to block deletion at the filesystem level.
 sudo -u dev_user bash -c 'echo "Version 1.0" > /srv/project_shared/shared_design.doc'
 sudo chattr +i /srv/project_shared/shared_design.doc
 lsattr /srv/project_shared/shared_design.doc
-sudo -u intern_a bash -c 'rm /srv/project_shared/shared_design.doc 2>&1'
+su - intern_a 
+rm /srv/project_shared/shared_design.doc 2>&1'
 ```
 
 **Evidence:**
 
-![Scenario 1 Task C](screenshots/Scenario%201%20Task%20C)
+![Scenario 1 Task C](screenshots/scenario_01_task_c.png)
 *lsattr showing ----i--- flag set AND Operation not permitted error — deletion blocked*
 
 **Security Implications:**
@@ -176,15 +173,11 @@ history > ~/logs/app.log
 cp -p ~/logs/app.log ~/archive/app.log.bak
 sudo chattr +a ~/logs/app.log
 lsattr ~/logs/app.log
-
-# Test the protection
-echo "new entry" >> ~/logs/app.log && echo "APPEND: OK"
-echo "overwrite"  > ~/logs/app.log 2>&1 || echo "OVERWRITE BLOCKED"
 ```
 
 **Evidence:**
 
-![Scenario 2](screenshots/Scenario%202)
+![Scenario 2](screenshots/scenario_02.png)
 *Two wc -l outputs: 100+ lines before, 1 line after overwrite — the incident. Then lsattr showing +a flag with APPEND: OK and OVERWRITE BLOCKED.*
 
 ![screenshot_11_backup_with_metadata](screenshots/screenshot_11_backup_with_metadata.png)
@@ -197,12 +190,12 @@ echo "overwrite"  > ~/logs/app.log 2>&1 || echo "OVERWRITE BLOCKED"
 *APPEND: OK followed by OVERWRITE BLOCKED — protection confirmed*
 
 **Observations & Security Implications:**
-- The `>` operator truncates the file to zero bytes before writing — all 100+ lines are gone in an instant.
+- **Why log overwrites are dangerous:** The `>` operator truncates the file to zero bytes before writing — all 100+ lines are gone in an instant.Logs are the primary evidence in any incident investigation. Losing them means losing the timeline of what happened.
 - `>>` appends safely without touching existing content. This should always be the default for log pipelines.
-- `cp -p` preserves timestamps (mtime, atime) which are critical evidence in forensic timelines. Without them, a backup file loses its evidentiary value.
+- **Importance of metadata preservation:** `cp -p` preserves timestamps (mtime, atime) which are critical evidence in forensic timelines. Without them, a backup file loses its evidentiary value.
 - `chattr +a` enforces append-only at the filesystem level, independent of user permissions — even a misconfigured script running as root cannot overwrite the file.
-- In regulated environments (PCI-DSS, SOC2, ISO 27001), log integrity is a mandatory control.
-
+- In regulated environments, log integrity is a mandatory control.
+- **DevSecOps forensic significance:** In CI/CD pipelines, logs record every deployment and build. If they can be overwritten, malicious changes can be hidden. Append-only logs with centralised shipping to a SIEM create a tamper-evident trail that survives even if the local machine is compromised.
 ---
 
 ### Scenario 3 – Permission & Ownership Drift
@@ -240,10 +233,10 @@ ls -la ~/drift_test/dest_preserved/
 *Initial files with 600 and 644 permissions set*
 
 ![screenshot_15_ownership_changed](screenshots/screenshot_15_ownership_changed.png)
-*Ownership changed — secret.txt now owned by dev_user:project_team*
+*Ownership changed — secret.txt now owned by vboxuser:project_group*
 
 ![screenshot_16_cp_with_without_p](screenshots/screenshot_16_cp_with_without_p.png)
-*Side by side: dest_normal shows ownership reset to current user; dest_preserved keeps dev_user ownership and original timestamps*
+*Side by side: dest_normal shows ownership reset to current user; dest_preserved keeps vboxuser ownership and original timestamps*
 
 **Observations:**
 
@@ -251,7 +244,6 @@ ls -la ~/drift_test/dest_preserved/
 |-------------|-------------|-----------|------------|
 | `cp` (plain) | May differ | Reset to current user | Reset to now |
 | `cp -p` | Preserved | Best-effort | Preserved |
-| `rsync -a` | Fully preserved | Fully preserved | Fully preserved |
 
 **Security Implication:** A config file intended to be `root:root 640` silently becomes `youruser:yourgroup 640` after a careless copy — potentially exposing secrets to a wider audience without anyone noticing.
 
