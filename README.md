@@ -8,6 +8,7 @@ This repository documents my completion of the ParoCyber Linux Assignment — a 
 
 Each scenario simulates an incident that could happen in a production environment. The goal is to reproduce the problem, understand why it happened, and apply the correct fix.
 
+Want a high-level overview? Read this article: [10 Linux Security Incidents Reproduced and Fixed](https://dev.to/yaak/10-linux-security-incidents-reproduced-and-fixed-b9h)
 ---
 
 ## 📁 Repository Structure
