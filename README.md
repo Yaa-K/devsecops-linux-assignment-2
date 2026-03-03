@@ -174,7 +174,7 @@ lsattr ~/logs/app.log
 **Evidence:**
 
 ![Scenario 2](screenshots/scenario_02.png)
-*Two wc -l outputs: 100+ lines before, 1 line after overwrite — the incident. Then lsattr showing +a flag with APPEND: OK and OVERWRITE BLOCKED.*
+*Two wc -l outputs: 100+ lines before, 1 line after overwrite*
 
 ![screenshot_11_backup_with_metadata](screenshots/screenshot_11_backup_with_metadata.png)
 *ls -la of ~/archive/ showing app.log.bak with original timestamps preserved via cp -p*
