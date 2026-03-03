@@ -132,7 +132,7 @@ rm /srv/project_shared/shared_design.doc 2>&1'
 **Evidence:**
 
 ![Scenario 1 Task C](screenshots/scenario_01_task_c.png)
-*lsattr showing ----i--- flag set AND Operation not permitted error — deletion blocked*
+Operation not permitted error — deletion blocked*
 
 **Security Implications:**
 
