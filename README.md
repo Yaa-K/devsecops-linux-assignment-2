@@ -242,6 +242,8 @@ ls -la ~/drift_test/dest_preserved/
 | `cp -p` | Preserved | Best-effort | Preserved |
 
 **Security Implication:** A file copied without -p loses its original timestamps instantly — the modification time resets to now, making it impossible to tell when the file was last legitimately changed. In a forensic investigation, that's the kind of detail that breaks a timeline.
+
+
 ---
 
 ### Scenario 4 – Relative Path Deployment Failure
