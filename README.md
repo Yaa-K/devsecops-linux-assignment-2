@@ -232,7 +232,7 @@ ls -la ~/drift_test/dest_preserved/
 *Ownership changed — secret.txt now owned by vboxuser:project_group*
 
 ![screenshot_16_cp_with_without_p](screenshots/screenshot_16_cp_with_without_p.png)
-*Side by side: dest_normal shows ownership reset to current user; dest_preserved keeps vboxuser ownership and original timestamps*
+*Side by side: dest_normal shows time reset to current timestamp; dest_preserved keeps original timestamps*
 
 **Observations:**
 
@@ -241,8 +241,7 @@ ls -la ~/drift_test/dest_preserved/
 | `cp` (plain) | May differ | Reset to current user | Reset to now |
 | `cp -p` | Preserved | Best-effort | Preserved |
 
-**Security Implication:** A config file intended to be `root:root 640` silently becomes `youruser:yourgroup 640` after a careless copy — potentially exposing secrets to a wider audience without anyone noticing.
-
+**Security Implication:** A file copied without -p loses its original timestamps instantly — the modification time resets to now, making it impossible to tell when the file was last legitimately changed. In a forensic investigation, that's the kind of detail that breaks a timeline.
 ---
 
 ### Scenario 4 – Relative Path Deployment Failure
